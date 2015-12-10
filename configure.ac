@@ -67,7 +67,7 @@ DEMO_CFLAGS="$DEMO_CFLAGS $GL_CFLAGS"
 DEMO_LIBS="$DEMO_LIBS $GL_LIBS"
 
 dnl Check for GLUT
-glut_enabled=no
+glut_enabled=yes
 AC_ARG_WITH([glut],
 	[AS_HELP_STRING([--with-glut=DIR],
 			[glut install directory])],
@@ -83,9 +83,8 @@ AS_IF([test "x$with_glut" != xno],
        AC_CHECK_LIB([glut],
                     [glutInit],
                     [],
-                    [glut_enabled=no])
-       glut_enabled=yes
-])
+                    [glut_enabled=no])],
+      [glut_enabled=no])
 
 dnl Check for FreeGLUT 2.6 or later
 AC_EGREP_HEADER([glutInitContextProfile],
