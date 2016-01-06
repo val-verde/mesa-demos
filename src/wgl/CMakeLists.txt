@@ -16,6 +16,7 @@ set_target_properties (wgl_sharedtex_mt PROPERTIES OUTPUT_NAME sharedtex_mt)
 add_executable (wglinfo wglinfo.c ${CMAKE_SOURCE_DIR}/src/xdemos/glinfo_common.c)
 add_executable (wglcontext wglcontext.c)
 add_executable (wincopy WIN32 wincopy.c wglutil.c)
+add_executable (wglfont wglfont.c)
 
 install (
 	TARGETS
@@ -23,6 +24,7 @@ install (
 		wgl_sharedtex_mt
 		wglinfo
 		wglcontext
+		wglfont
 		wincopy
 	DESTINATION wgl)
 
