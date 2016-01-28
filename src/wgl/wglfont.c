@@ -68,7 +68,7 @@ main(int argc, char *argv[])
    pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
    pfd.iPixelType = PFD_TYPE_RGBA;
    pfd.cColorBits = 24;
-   pfd.cDepthBits = 24;
+   pfd.cDepthBits = 0;
    pfd.iLayerType = PFD_MAIN_PLANE;
 
    iPixelFormat = ChoosePixelFormat(hdc, &pfd);
@@ -87,9 +87,12 @@ main(int argc, char *argv[])
 
    wglMakeCurrent(hdc, hglrc);
 
+   glClearColor(0.0, 0.0, 0.0, 1.0);
+   glClear(GL_COLOR_BUFFER_BIT);
+
    SelectObject(hdc, GetStockObject(SYSTEM_FONT));
 
-   wglUseFontBitmaps(hdc, 0, 255, 1000);
+   wglUseFontBitmaps(hdc, 0, 256, 1000);
 
    glListBase(1000);
 
@@ -98,6 +101,14 @@ main(int argc, char *argv[])
    SwapBuffers(hdc);
 
    Sleep(1000);
+
+   wglMakeCurrent(NULL, NULL);
+
+   wglDeleteContext(hglrc);
+
+   ReleaseDC(hwnd, hdc);
+
+   DestroyWindow(hwnd);
 
    return 0;
 }
