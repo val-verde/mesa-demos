@@ -138,5 +138,7 @@ context_flags_string(int mask);
 void
 parse_args(int argc, char *argv[], struct options *options);
 
+void
+print_gpu_memory_info(const char *glExtensions);
 
 #endif /* GLINFO_COMMON_H */
