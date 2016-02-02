@@ -95,6 +95,7 @@ noinst_PROGRAMS = \
 	fogcoord \
 	fptest1 \
 	fptexture \
+	front-back-modes \
 	$(GETPROCADDRESS) \
 	getteximage \
 	glutfx \
@@ -133,6 +134,7 @@ noinst_PROGRAMS = \
 	shader-interp \
 	shadow-sample \
 	sharedtex \
+	spazio3d \
 	stencilreaddraw \
 	stencilwrap \
 	step \

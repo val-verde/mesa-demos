@@ -64,6 +64,7 @@ set (targets
 	fogcoord
 	fptest1
 	fptexture
+	front-back-modes
 	# XXX: Requires Mesa source
 	#getprocaddress
 	getteximage
