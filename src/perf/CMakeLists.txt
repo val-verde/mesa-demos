@@ -37,3 +37,6 @@ foreach (target ${targets})
 	set_target_properties (${subdir}_${target} PROPERTIES OUTPUT_NAME ${target})
 	install (TARGETS ${subdir}_${target} DESTINATION ${subdir})
 endforeach (target)
+
+add_executable (glsl-compile-time glsl-compile-time.c)
+install (TARGETS glsl-compile-time DESTINATION ${subdir})
