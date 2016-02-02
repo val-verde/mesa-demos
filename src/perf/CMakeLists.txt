@@ -25,7 +25,6 @@ set (targets
 	fbobind
 	fill
 	genmipmap
-	glsl-compile-time
 	readpixels
 	swapbuffers
 	teximage
