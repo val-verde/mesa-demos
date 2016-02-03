@@ -134,7 +134,6 @@ noinst_PROGRAMS = \
 	shader-interp \
 	shadow-sample \
 	sharedtex \
-	spazio3d \
 	stencilreaddraw \
 	stencilwrap \
 	step \
