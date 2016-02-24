@@ -20,6 +20,10 @@
 #include "glut_wrap.h"
 #include "shaderutil.h"
 
+#if defined(_MSC_VER)
+#define snprintf _snprintf
+#endif
+
 
 #define MAX_PROGRAMS 10000
 
