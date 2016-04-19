@@ -93,6 +93,8 @@ PrintConfigs(EGLDisplay d)
          strcat(surfString, "pb,");
       if (surfaces & EGL_PIXMAP_BIT)
          strcat(surfString, "pix,");
+      if (surfaces & EGL_STREAM_BIT_KHR)
+         strcat(surfString, "str,");
       if (strlen(surfString) > 0)
          surfString[strlen(surfString) - 1] = 0;
 
