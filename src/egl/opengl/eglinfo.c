@@ -115,7 +115,7 @@ PrintConfigs(EGLDisplay d)
 }
 
 
-static void
+static const char *
 PrintExtensions(EGLDisplay d)
 {
    const char *extensions, *p, *end, *next;
@@ -126,7 +126,7 @@ PrintExtensions(EGLDisplay d)
 
    extensions = eglQueryString(d, EGL_EXTENSIONS);
    if (!extensions)
-      return;
+      return NULL;
 
    column = 0;
    end = extensions + strlen(extensions);
@@ -153,6 +153,8 @@ PrintExtensions(EGLDisplay d)
 
    if (column > 0)
       printf("\n");
+
+   return extensions;
 }
 
 static int
@@ -162,7 +164,7 @@ doOneDisplay(EGLDisplay d, const char *name)
 
    printf("%s:\n", name);
    if (!eglInitialize(d, &maj, &min)) {
-      printf("eglinfo: eglInitialize failed\n");
+      printf("eglinfo: eglInitialize failed\n\n");
       return 1;
    }
 
@@ -183,12 +185,39 @@ doOneDisplay(EGLDisplay d, const char *name)
 int
 main(int argc, char *argv[])
 {
-   int ret;
+   int ret = 0;
+   const char *clientext;
 
-   PrintExtensions(EGL_NO_DISPLAY);
+   clientext = PrintExtensions(EGL_NO_DISPLAY);
    printf("\n");
 
-   ret = doOneDisplay(eglGetDisplay(EGL_DEFAULT_DISPLAY), "Default display");
+   if (strstr(clientext, "EGL_EXT_platform_base")) {
+       PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplay =
+           (PFNEGLGETPLATFORMDISPLAYEXTPROC)
+           eglGetProcAddress("eglGetPlatformDisplayEXT");
+       if (strstr(clientext, "EGL_KHR_platform_android"))
+           ret += doOneDisplay(getPlatformDisplay(EGL_PLATFORM_ANDROID_KHR,
+                                                  EGL_DEFAULT_DISPLAY,
+                                                  NULL), "Android platform");
+       if (strstr(clientext, "EGL_MESA_platform_gbm") ||
+           strstr(clientext, "EGL_KHR_platform_gbm"))
+           ret += doOneDisplay(getPlatformDisplay(EGL_PLATFORM_GBM_MESA,
+                                                  EGL_DEFAULT_DISPLAY,
+                                                  NULL), "GBM platform");
+       if (strstr(clientext, "EGL_EXT_platform_wayland") ||
+           strstr(clientext, "EGL_KHR_platform_wayland"))
+           ret += doOneDisplay(getPlatformDisplay(EGL_PLATFORM_WAYLAND_EXT,
+                                                  EGL_DEFAULT_DISPLAY,
+                                                  NULL), "Wayland platform");
+       if (strstr(clientext, "EGL_EXT_platform_x11") ||
+           strstr(clientext, "EGL_KHR_platform_x11"))
+           ret += doOneDisplay(getPlatformDisplay(EGL_PLATFORM_X11_EXT,
+                                                  EGL_DEFAULT_DISPLAY,
+                                                  NULL), "X11 platform");
+   }
+   else {
+      ret = doOneDisplay(eglGetDisplay(EGL_DEFAULT_DISPLAY), "Default display");
+   }
 
    return ret;
 }
