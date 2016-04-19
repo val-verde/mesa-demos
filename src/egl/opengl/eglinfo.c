@@ -159,7 +159,11 @@ int
 main(int argc, char *argv[])
 {
    int maj, min;
-   EGLDisplay d = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+   EGLDisplay d;
+
+   PrintExtensions(EGL_NO_DISPLAY);
+
+   d = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
    if (!eglInitialize(d, &maj, &min)) {
       printf("eglinfo: eglInitialize failed\n");
@@ -174,7 +178,6 @@ main(int argc, char *argv[])
 #endif
 
    PrintExtensions(d);
-   PrintExtensions(EGL_NO_DISPLAY);
 
    PrintConfigs(d);
 
