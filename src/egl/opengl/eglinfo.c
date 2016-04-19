@@ -155,19 +155,15 @@ PrintExtensions(EGLDisplay d)
       printf("\n");
 }
 
-int
-main(int argc, char *argv[])
+static int
+doOneDisplay(EGLDisplay d, const char *name)
 {
    int maj, min;
-   EGLDisplay d;
 
-   PrintExtensions(EGL_NO_DISPLAY);
-
-   d = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
+   printf("%s:\n", name);
    if (!eglInitialize(d, &maj, &min)) {
       printf("eglinfo: eglInitialize failed\n");
-      exit(1);
+      return 1;
    }
 
    printf("EGL API version: %d.%d\n", maj, min);
@@ -180,8 +176,19 @@ main(int argc, char *argv[])
    PrintExtensions(d);
 
    PrintConfigs(d);
-
-   eglTerminate(d);
-
+   printf("\n");
    return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+   int ret;
+
+   PrintExtensions(EGL_NO_DISPLAY);
+   printf("\n");
+
+   ret = doOneDisplay(eglGetDisplay(EGL_DEFAULT_DISPLAY), "Default display");
+
+   return ret;
 }
