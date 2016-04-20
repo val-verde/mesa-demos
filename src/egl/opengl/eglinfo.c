@@ -178,6 +178,7 @@ doOneDisplay(EGLDisplay d, const char *name)
    PrintExtensions(d);
 
    PrintConfigs(d);
+   eglTerminate(d);
    printf("\n");
    return 0;
 }
