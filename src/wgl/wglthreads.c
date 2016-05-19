@@ -76,7 +76,7 @@ struct winthread {
 };
 
 
-#define MAX_WINTHREADS 100
+#define MAX_WINTHREADS 128
 static struct winthread WinThreads[MAX_WINTHREADS];
 static int NumWinThreads = 2;
 static HANDLE ExitEvent = NULL;
@@ -380,30 +380,17 @@ WndProc(HWND hWnd,
         WPARAM wParam,
         LPARAM lParam )
 {
-   int i;
+   struct winthread *wt = (struct winthread *)(INT_PTR)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
    switch (uMsg) {
    case WM_KEYDOWN:
-      for (i = 0; i < NumWinThreads; i++) {
-         struct winthread *wt = &WinThreads[i];
-
-         if (hWnd == wt->Win) {
-            keypress(wParam, wt);
-            break;
-         }
-      }
+      keypress(wParam, wt);
       break;
    case WM_SIZE:
-      for (i = 0; i < NumWinThreads; i++) {
-         struct winthread *wt = &WinThreads[i];
-
-         if (hWnd == wt->Win) {
-            RECT r;
-
-            GetClientRect(hWnd, &r);
-            resize(wt, r.right, r.bottom);
-            break;
-         }
+      {
+         RECT r;
+         GetClientRect(hWnd, &r);
+         resize(wt, r.right, r.bottom);
       }
       break;
    case WM_DESTROY:
@@ -455,6 +442,8 @@ create_window(struct winthread *wt, HGLRC shareCtx)
    if (!win) {
       Error("Couldn't create window");
    }
+
+   SetWindowLongPtr(win, GWLP_USERDATA, (LONG_PTR)wt);
 
    hdc = GetDC(win);
    if (!hdc) {
