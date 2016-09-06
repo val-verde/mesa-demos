@@ -208,9 +208,9 @@ fi
 
 AC_ARG_ENABLE([wayland],
     [AS_HELP_STRING([--enable-wayland],
-        [enable support for wayland @<:@default=no@:>@])],
+        [enable support for wayland @<:@default=auto@:>@])],
     [wayland_enabled="$enableval"],
-    [wayland_enabled=no])
+    [wayland_enabled=auto])
 
 if test "x$wayland_enabled" != "xno"; then
     PKG_CHECK_MODULES(WAYLAND, [wayland-client wayland-egl], [wayland_enabled=yes], [wayland_enabled=no])
