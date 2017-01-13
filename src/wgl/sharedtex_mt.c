@@ -508,7 +508,6 @@ int
 main(int argc, char *argv[])
 {
    struct thread_init_arg tia[MAX_WINDOWS];
-   struct window *h[MAX_WINDOWS];
    HANDLE threads[MAX_WINDOWS];
    int i;
 
@@ -518,10 +517,10 @@ main(int argc, char *argv[])
       return -1;
 
    /* four windows and contexts sharing display lists and texture objects */
-   h[0] = AddWindow( 10,  10, gCtx);
-   h[1] = AddWindow(330,  10, gCtx);
-   h[2] = AddWindow( 10, 350, gCtx);
-   h[3] = AddWindow(330, 350, gCtx);
+   AddWindow( 10,  10, gCtx);
+   AddWindow(330,  10, gCtx);
+   AddWindow( 10, 350, gCtx);
+   AddWindow(330, 350, gCtx);
 
    for (i = 0; i < NumWindows; i++) {
       Windows[i].hEventInitialised = CreateEvent(NULL, TRUE, FALSE, NULL);
