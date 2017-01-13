@@ -27,21 +27,21 @@ public:
 		data=NULL;
 	}
 	
-	bool Load(char * filename);					//load a texture from a file
+	bool Load(const char * filename);					//load a texture from a file
 
-	bool LoadBMP(char * filename);				//Load BMP
-	bool Load24BitBMP(char * filename);
-	bool Load8BitBMP(char * filename);
+	bool LoadBMP(const char * filename);				//Load BMP
+	bool Load24BitBMP(const char * filename);
+	bool Load8BitBMP(const char * filename);
 
-	bool LoadPCX(char * filename);				//Load PCX
+	bool LoadPCX(const char * filename);				//Load PCX
 
-	bool LoadTGA(char * filename);				//Load TGA
-	bool LoadUncompressed8BitTGA(char * filename);
-	bool LoadUncompressedTrueColorTGA(char * filename);
-	bool LoadCompressedTrueColorTGA(char * filename);
+	bool LoadTGA(const char * filename);				//Load TGA
+	bool LoadUncompressed8BitTGA(const char * filename);
+	bool LoadUncompressedTrueColorTGA(const char * filename);
+	bool LoadCompressedTrueColorTGA(const char * filename);
 	
 	//load an uncompressed greyscale TGA for alpha channel
-	bool LoadAlphaTGA(char * filename);
+	bool LoadAlphaTGA(const char * filename);
 
 	//Alter the image
 	void FlipVertically();

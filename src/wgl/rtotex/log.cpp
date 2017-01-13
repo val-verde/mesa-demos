@@ -11,9 +11,8 @@
 
 #include "log.h"
 
-//bool LOG::Init()
 //Initiates log. Dont call, it is in the constructor
-bool LOG::Init(char * filename)
+bool LOG::Init(const char * filename)
 {
 	//Clear the log file contents
 	if((logfile=fopen(filename, "wb"))==NULL)
@@ -25,7 +24,6 @@ bool LOG::Init(char * filename)
 }
 
 
-//bool LOG::Shutdown()
 //Shuts down log, in the destructor.
 bool LOG::Shutdown()
 {
@@ -51,8 +49,7 @@ void LOG::OutputNewline()
 }
 
 
-//void LOG::OutputError(char * text,...)
-void LOG::OutputError(char * text,...)
+void LOG::OutputError(const char * text,...)
 {
 	va_list arg_list;
 
@@ -79,7 +76,7 @@ void LOG::OutputError(char * text,...)
 }
 
 
-void LOG::OutputSuccess(char * text,...)
+void LOG::OutputSuccess(const char * text,...)
 {
 	va_list arg_list;
 

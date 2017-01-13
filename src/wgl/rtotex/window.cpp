@@ -20,7 +20,7 @@
 
 extern LOG errorLog;
 
-bool WINDOW::Init(char * windowTitle,
+bool WINDOW::Init(const char * windowTitle,
 				  int newWidth, int newHeight,
 				  int newColorBits, int newDepthBits, int newStencilBits,
 				  int fullscreenflag)

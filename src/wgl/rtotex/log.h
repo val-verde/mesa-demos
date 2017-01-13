@@ -23,12 +23,12 @@ protected:
 	bool Shutdown(void);
 
 public:
-	bool Init(char * filename);
+	bool Init(const char * filename);
 
 	//Output to log
 	void OutputNewline();
-	void OutputError(char * text, ...);
-	void OutputSuccess(char * text, ...);
+	void OutputError(const char * text, ...);
+	void OutputSuccess(const char * text, ...);
 		
 	LOG() {}
 	~LOG(){ Shutdown(); }

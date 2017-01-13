@@ -20,12 +20,12 @@ public:
 	HWND hWnd;													//Holds window handle
 	HINSTANCE hInstance;										//Holds application instance
 	MSG msg;								//message structure, to see if any pending messages
-	char * title;												//Window Title
+	const char * title;												//Window Title
 	int width, height;											//window size
 	int colorBits, depthBits, stencilBits;						//window bpp
 	bool fullscreen;											//fullscreen?
 	
-	bool Init(	char * windowTitle,
+	bool Init(const char * windowTitle,
 				int newWidth, int newHeight,
 				int newColorBits, int newDepthBits, int newStencilBits,
 				int fullscreenflag);

@@ -16,7 +16,7 @@
 extern LOG errorLog;
 
 //Load - load a texture from a file
-bool IMAGE::Load(char * filename)
+bool IMAGE::Load(const char * filename)
 {
 	//Clear the data if already used
 	if(data)
@@ -47,7 +47,7 @@ bool IMAGE::Load(char * filename)
 
 
 
-bool IMAGE::LoadBMP(char * filename)
+bool IMAGE::LoadBMP(const char * filename)
 {
 	FILE * file;												//the texture file
 	BITMAPFILEHEADER fileHeader;								//bitmap file header
@@ -90,7 +90,7 @@ bool IMAGE::LoadBMP(char * filename)
 	
 
 //Load24BitBMP - load a 24 bit bitmap file
-bool IMAGE::Load24BitBMP(char * filename)
+bool IMAGE::Load24BitBMP(const char * filename)
 {
 	errorLog.OutputSuccess("Loading %s in Load24bitBMP()", filename);
 	
@@ -172,7 +172,7 @@ bool IMAGE::Load24BitBMP(char * filename)
 }
 
 //Load8BitBMP - load an 8 bit paletted bitmap file
-bool IMAGE::Load8BitBMP(char * filename)
+bool IMAGE::Load8BitBMP(const char * filename)
 {
 	errorLog.OutputSuccess("Loading %s in Load8bitBMP()", filename);
 	
@@ -274,7 +274,7 @@ bool IMAGE::Load8BitBMP(char * filename)
 
 
 //LoadPCX - load a .pcx texture - 256 color, paletted
-bool IMAGE::LoadPCX(char * filename)
+bool IMAGE::LoadPCX(const char * filename)
 {
 	errorLog.OutputSuccess("Loading %s in LoadPCX()", filename);
 
@@ -406,7 +406,7 @@ bool IMAGE::LoadPCX(char * filename)
 
 
 //Load a TGA texture
-bool IMAGE::LoadTGA(char * filename)
+bool IMAGE::LoadTGA(const char * filename)
 {
 	unsigned char	UncompressedTGAHeader[12]={0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	unsigned char	CompressedTGAHeader[12]={0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -448,7 +448,7 @@ bool IMAGE::LoadTGA(char * filename)
 }
 
 //load an 8 bit uncompressed paletted TGA
-bool IMAGE::LoadUncompressed8BitTGA(char * filename)
+bool IMAGE::LoadUncompressed8BitTGA(const char * filename)
 {
 	unsigned char		TGAHeader[12]={0, 1, 1, 0, 0, 0, 1, 24, 0, 0, 0, 0};
 	unsigned char		TGAcompare[12];						//Used to compare TGA header
@@ -544,7 +544,7 @@ bool IMAGE::LoadUncompressed8BitTGA(char * filename)
 
 
 //load an uncompressed TGA texture (24 or 32 bpp)
-bool IMAGE::LoadUncompressedTrueColorTGA(char * filename)
+bool IMAGE::LoadUncompressedTrueColorTGA(const char * filename)
 {
 	unsigned char	TGAheader[12]={0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0};	//Uncompressed TGA header
 	unsigned char	TGAcompare[12];						//Used to compare TGA header
@@ -632,7 +632,7 @@ bool IMAGE::LoadUncompressedTrueColorTGA(char * filename)
 
 
 //load a compressed TGA texture (24 or 32 bpp)
-bool IMAGE::LoadCompressedTrueColorTGA(char * filename)
+bool IMAGE::LoadCompressedTrueColorTGA(const char * filename)
 {
 	unsigned char	TGAheader[12]={0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0};	//Compressed TGA header
 	unsigned char	TGAcompare[12];						//Used to compare TGA header
@@ -820,7 +820,7 @@ bool IMAGE::LoadCompressedTrueColorTGA(char * filename)
 
 
 //load in an 8 bit greyscale TGA as an alpha channel
-bool IMAGE::LoadAlphaTGA(char * filename)
+bool IMAGE::LoadAlphaTGA(const char * filename)
 {
 	unsigned char	TGAHeader[12]={0, 1, 1, 0, 0, 0, 1, 24, 0, 0, 0, 0};
 	unsigned char	TGAcompare[12];						//Used to compare TGA header
