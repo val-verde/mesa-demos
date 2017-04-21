@@ -18,7 +18,6 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/* $XFree86: xc/programs/glxgears/glxgears.c,v 1.3tsi Exp $ */
 
 /*
  * This is a port of the infamous "gears" demo to straight GLX (i.e. no GLUT)
@@ -27,17 +26,13 @@
  * Command line options:
  *    -info      print GL implementation information
  *
- */
-
-/* Modified from X11/GLX to Win32/WGL by Ben Skeggs
+ * Modified from X11/GLX to Win32/WGL by Ben Skeggs
  * 25th October 2004
  */
- 
+
 #include <windows.h>
 #include <GL/gl.h>
 #include <GL/wglext.h>
-
-
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -53,18 +48,6 @@
 #define M_PI 3.14159265
 #endif /* !M_PI */
 
-/* Turn a NULL pointer string into an empty string */
-#define NULLSTR(x) (((x)!=NULL)?(x):(""))
-#define Log(x) { if(verbose) printf x; }
-
-#define Bool int
-#define False 0
-#define True 1
-
-#if 0
-/* wgl extensions */
-PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 0;
-#endif
 
 /* Global vars */
 static HDC hDC;
@@ -74,11 +57,11 @@ static HINSTANCE hInst;
 static RECT winrect;
 
 static const char *ProgramName;      /* program name (from argv[0]) */
-static Bool        verbose = False;  /* verbose output what the program is doing */
 
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
 static GLint gear1, gear2, gear3;
 static GLfloat angle = 0.0;
+
 
 static
 void usage(void)
@@ -86,16 +69,18 @@ void usage(void)
    fprintf (stderr, "usage:  %s [options]\n", ProgramName);
    fprintf (stderr, "-info\tPrint additional GL information.\n");
    fprintf (stderr, "-h\tPrint this help page.\n");
-   fprintf (stderr, "-v\tVerbose output.\n");
    fprintf (stderr, "\n");
    exit(EXIT_FAILURE);
 }
 
 
 /* return current time (in seconds) */
-static int current_time(void) {
-	return (int)time(NULL);
+static int
+current_time(void)
+{
+   return (int)time(NULL);
 }
+
 
 /*
  *
@@ -320,178 +305,170 @@ init(void)
    glEnable(GL_NORMALIZE);
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch (uMsg) {
-	case WM_CLOSE:
-		PostQuitMessage(0);
-		return 0;
-	case WM_SIZE:
-		reshape(LOWORD(lParam), HIWORD(lParam));
-		return 0;
-	case WM_KEYDOWN:
-		if (wParam == VK_LEFT)
-			view_roty += 5.0;
-		else if (wParam == VK_RIGHT)
-			view_roty -= 5.0;
-		else if (wParam == VK_UP)
-			view_rotx += 5.0;
-		else if (wParam == VK_DOWN)
-			view_rotx -= 5.0;
-		else if (wParam == VK_ESCAPE)
-			PostQuitMessage(0);
-		return 0;
-	}
 
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+static LRESULT CALLBACK
+WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+   switch (uMsg) {
+   case WM_CLOSE:
+      PostQuitMessage(0);
+      return 0;
+   case WM_SIZE:
+      reshape(LOWORD(lParam), HIWORD(lParam));
+      return 0;
+   case WM_KEYDOWN:
+      if (wParam == VK_LEFT)
+         view_roty += 5.0;
+      else if (wParam == VK_RIGHT)
+         view_roty -= 5.0;
+      else if (wParam == VK_UP)
+         view_rotx += 5.0;
+      else if (wParam == VK_DOWN)
+         view_rotx -= 5.0;
+      else if (wParam == VK_ESCAPE)
+         PostQuitMessage(0);
+      return 0;
+   }
+
+   return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
+
 
 /*
  * Create an RGB, double-buffered window.
  * Return the window and context handles.
  */
-static void make_window(const char *name, int x, int y, int width, int height) {
-	GLuint PixelFormat;
-	WNDCLASS wc;
-	DWORD dwExStyle, dwStyle;
-	static PIXELFORMATDESCRIPTOR pfd = {
-		sizeof(PIXELFORMATDESCRIPTOR),
-		1,
-		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-		PFD_TYPE_RGBA,
-		24,
-		0, 0, 0, 0, 0, 0,
-		0,
-		0,
-		0,
-		0, 0, 0, 0,
-		16,
-		0,
-		0,
-		PFD_MAIN_PLANE,
-		0,
-		0, 0, 0
-	};
+static void
+make_window(const char *name, int x, int y, int width, int height)
+{
+   GLuint PixelFormat;
+   WNDCLASS wc;
+   DWORD dwExStyle, dwStyle;
+   static const PIXELFORMATDESCRIPTOR pfd = {
+      sizeof(PIXELFORMATDESCRIPTOR),
+      1,
+      PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+      PFD_TYPE_RGBA,
+      24,
+      0, 0, 0, 0, 0, 0,
+      0,
+      0,
+      0,
+      0, 0, 0, 0,
+      16,
+      0,
+      0,
+      PFD_MAIN_PLANE,
+      0,
+      0, 0, 0
+   };
 
-	winrect.left = (long)0;
-	winrect.right = (long)width;
-	winrect.top = (long) 0;
-	winrect.bottom = (long)height;
+   winrect.left = (long)0;
+   winrect.right = (long)width;
+   winrect.top = (long) 0;
+   winrect.bottom = (long)height;
 
-	hInst = GetModuleHandle(NULL);
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = (WNDPROC)WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hInst;
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = NULL;
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = name;
-	if (!RegisterClass(&wc)) {
-		printf("failed to register class\n");
-		exit(0);
-	}
+   hInst = GetModuleHandle(NULL);
+   wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+   wc.lpfnWndProc = (WNDPROC)WndProc;
+   wc.cbClsExtra = 0;
+   wc.cbWndExtra = 0;
+   wc.hInstance = hInst;
+   wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+   wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+   wc.hbrBackground = NULL;
+   wc.lpszMenuName = NULL;
+   wc.lpszClassName = name;
+   if (!RegisterClass(&wc)) {
+      printf("failed to register class\n");
+      exit(0);
+   }
 
-	dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-	dwStyle = WS_OVERLAPPEDWINDOW;
-	AdjustWindowRectEx(&winrect, dwStyle, False, dwExStyle);
+   dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+   dwStyle = WS_OVERLAPPEDWINDOW;
+   AdjustWindowRectEx(&winrect, dwStyle, FALSE, dwExStyle);
 
-	if (!(hWnd = CreateWindowEx(dwExStyle, name, name,
-		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | dwStyle, 0, 0,
-		winrect.right - winrect.left, winrect.bottom - winrect.top,
-		NULL, NULL, hInst, NULL))) {
-		printf("failed to create window\n");
-		exit(0);
-	}
+   if (!(hWnd = CreateWindowEx(dwExStyle, name, name,
+                               WS_CLIPSIBLINGS | WS_CLIPCHILDREN | dwStyle,
+                               0, 0,
+                               winrect.right - winrect.left,
+                               winrect.bottom - winrect.top,
+                               NULL, NULL, hInst, NULL))) {
+      printf("failed to create window\n");
+      exit(0);
+   }
 
-	if (!(hDC = GetDC(hWnd)) ||
-		!(PixelFormat = ChoosePixelFormat(hDC, &pfd)) ||
-		!(SetPixelFormat(hDC, PixelFormat, &pfd)) ||
-		!(hRC = wglCreateContext(hDC)) ||
-		!(wglMakeCurrent(hDC, hRC))) {
-		printf("failed to initialise opengl\n");
-		exit(0);
-	}
+   if (!(hDC = GetDC(hWnd)) ||
+       !(PixelFormat = ChoosePixelFormat(hDC, &pfd)) ||
+       !(SetPixelFormat(hDC, PixelFormat, &pfd)) ||
+       !(hRC = wglCreateContext(hDC)) ||
+       !(wglMakeCurrent(hDC, hRC))) {
+      printf("failed to initialise opengl\n");
+      exit(0);
+   }
 
-	ShowWindow(hWnd, SW_SHOW);
-	SetForegroundWindow(hWnd);
-	SetFocus(hWnd);
+   ShowWindow(hWnd, SW_SHOW);
+   SetForegroundWindow(hWnd);
+   SetFocus(hWnd);
 }
 
 
-static void event_loop() {
-	MSG msg;
-	int t, t0 = current_time();
-	int frames = 0;
+static void
+event_loop(void)
+{
+   MSG msg;
+   int t, t0 = current_time();
+   int frames = 0;
 
-	while(1) {
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) break;;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+   while(1) {
+      if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+         if (msg.message == WM_QUIT) break;;
+         TranslateMessage(&msg);
+         DispatchMessage(&msg);
+      }
 
-		angle += 2.0;
-		draw();
-		SwapBuffers(hDC);
+      angle += 2.0;
+      draw();
+      SwapBuffers(hDC);
 
-		/* calc framerate */
-		t = current_time();
-		frames++;
-		if (t - t0 >= 5.0) {
-			GLfloat s = t - t0;
-			GLfloat fps = frames / s;
-			printf("%d frames in %3.1f seconds = %6.3f FPS\n", frames, s, fps);
-	 		t0 = t;
-			frames = 0;
-		}
-	}
+      /* calc framerate */
+      t = current_time();
+      frames++;
+      if (t - t0 >= 5.0) {
+         GLfloat s = t - t0;
+         GLfloat fps = frames / s;
+         printf("%d frames in %3.1f seconds = %6.3f FPS\n", frames, s, fps);
+         t0 = t;
+         frames = 0;
+      }
+   }
 }
+
 
 int
 main(int argc, char *argv[])
 {
-   int            i;
-   Bool	printInfo = False;
+   int i;
+   GLboolean printInfo = GL_FALSE;
 
    ProgramName = argv[0];
 
    for (i = 1; i < argc; i++) {
-      const char *arg = argv[i];
-      int         len = strlen(arg);
-
       if (strcmp(argv[i], "-info") == 0) {
-         printInfo = GL_TRUE;
-      }
-      else if (!strncmp("-v", arg, len)) {
-         verbose   = True;
          printInfo = GL_TRUE;
       }
       else if (strcmp(argv[i], "-h") == 0) {
          usage();
       }
-      else
-      {
+      else {
         fprintf(stderr, "%s: Unsupported option '%s'.\n", ProgramName, argv[i]);
         usage();
       }
    }
 
+   make_window("glxgears", 0, 0, 300, 300);
+   reshape(300, 300);
 
-	make_window("glxgears", 0, 0, 300, 300);
-	reshape(300, 300);
-
-/* force vsync off */
-#if 0
-	wglSwapIntervalEXT = wglGetProcAddress("wglSwapIntervalEXT");
-	if (!wglSwapIntervalEXT) {
-		printf("warning: wglSwapIntervalEXT missing, cannot force vsync off\n");
-	} else if (!wglSwapIntervalEXT(0)) {
-		printf("warning: failed to force vsync off, it may still be on\n");
-	}
-#endif
-	
    if (printInfo) {
       printf("GL_RENDERER   = %s\n", (char *) glGetString(GL_RENDERER));
       printf("GL_VERSION    = %s\n", (char *) glGetString(GL_VERSION));
@@ -503,10 +480,10 @@ main(int argc, char *argv[])
 
    event_loop();
 
-/* cleanup */
-	wglMakeCurrent (NULL, NULL);
-	wglDeleteContext (hRC);
-	ReleaseDC (hWnd, hDC);
+   /* cleanup */
+   wglMakeCurrent (NULL, NULL);
+   wglDeleteContext (hRC);
+   ReleaseDC (hWnd, hDC);
 
-	return EXIT_SUCCESS;
+   return EXIT_SUCCESS;
 }
