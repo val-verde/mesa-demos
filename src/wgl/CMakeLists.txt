@@ -17,6 +17,7 @@ add_executable (wglinfo wglinfo.c ${CMAKE_SOURCE_DIR}/src/xdemos/glinfo_common.c
 add_executable (wglcontext wglcontext.c)
 add_executable (wincopy WIN32 wincopy.c wglutil.c)
 add_executable (wglfont wglfont.c)
+add_executable (wglgears wglgears.c)
 
 install (
 	TARGETS
@@ -25,6 +26,7 @@ install (
 		wglinfo
 		wglcontext
 		wglfont
+		wglgears
 		wincopy
 	DESTINATION wgl)
 
