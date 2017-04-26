@@ -30,6 +30,7 @@
  * 25th October 2004
  */
 
+#include <assert.h>
 #include <windows.h>
 #include <GL/gl.h>
 #include <GL/wglext.h>
@@ -48,6 +49,14 @@
 #define M_PI 3.14159265
 #endif /* !M_PI */
 
+#ifndef WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB
+#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20A9
+#endif
+
+#ifndef GL_FRAMEBUFFER_SRGB
+#define GL_FRAMEBUFFER_SRGB 0x8db9
+#endif
+
 
 /* Global vars */
 static HDC hDC;
@@ -61,6 +70,7 @@ static const char *ProgramName;      /* program name (from argv[0]) */
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
 static GLint gear1, gear2, gear3;
 static GLfloat angle = 0.0;
+static GLboolean use_srgb = GL_FALSE;
 
 
 static
@@ -282,6 +292,9 @@ init(void)
    glEnable(GL_LIGHTING);
    glEnable(GL_LIGHT0);
    glEnable(GL_DEPTH_TEST);
+   if (use_srgb) {
+      glEnable(GL_FRAMEBUFFER_SRGB);
+   }
 
    /* make the gears */
    gear1 = glGenLists(1);
@@ -341,7 +354,7 @@ WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 static void
 make_window(const char *name, int x, int y, int width, int height)
 {
-   GLuint PixelFormat;
+   int pixelFormat;
    WNDCLASS wc;
    DWORD dwExStyle, dwStyle;
    static const PIXELFORMATDESCRIPTOR pfd = {
@@ -399,12 +412,81 @@ make_window(const char *name, int x, int y, int width, int height)
    }
 
    if (!(hDC = GetDC(hWnd)) ||
-       !(PixelFormat = ChoosePixelFormat(hDC, &pfd)) ||
-       !(SetPixelFormat(hDC, PixelFormat, &pfd)) ||
+       !(pixelFormat = ChoosePixelFormat(hDC, &pfd)) ||
+       !(SetPixelFormat(hDC, pixelFormat, &pfd)) ||
        !(hRC = wglCreateContext(hDC)) ||
        !(wglMakeCurrent(hDC, hRC))) {
       printf("failed to initialise opengl\n");
       exit(0);
+   }
+
+   if (use_srgb) {
+      /* For sRGB we need to use the wglChoosePixelFormatARB() function,
+       * and then create a new context, window, etc.
+       *
+       * Note: we can't query/use extension functions until after we've
+       * creatend and bound a rendering context.
+       */
+      PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB_func =
+         (PFNWGLCHOOSEPIXELFORMATARBPROC)
+         wglGetProcAddress("wglChoosePixelFormatARB");
+      assert(wglChoosePixelFormatARB_func);
+
+      static const int int_attribs[] = {
+         WGL_SUPPORT_OPENGL_ARB, TRUE,
+         //WGL_COLOR_BITS_ARB, 24,
+         //WGL_ALPHA_BITS_ARB, 8,
+         WGL_DEPTH_BITS_ARB, 24,
+         WGL_DOUBLE_BUFFER_ARB, TRUE,
+         WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, TRUE,
+         0
+      };
+      static const float float_attribs[] = { 0 };
+      UINT numFormats;
+
+      pixelFormat = 0;
+      if (!wglChoosePixelFormatARB_func(hDC, int_attribs, float_attribs, 1,
+                                        &pixelFormat, &numFormats)) {
+         printf("wglChoosePixelFormatARB failed\n");
+         exit(0);
+      }
+      assert(numFormats > 0);
+      printf("Chose sRGB pixel format %d (0x%x)\n", pixelFormat, pixelFormat);
+
+      PIXELFORMATDESCRIPTOR newPfd;
+      DescribePixelFormat(hDC, pixelFormat, sizeof(pfd), &newPfd);
+
+      /* now, create new context with new pixel format */
+      wglMakeCurrent(hDC, NULL);
+      wglDeleteContext(hRC);
+      DeleteDC(hDC);
+
+      if (!(hWnd = CreateWindowEx(dwExStyle, name, name,
+                                  WS_CLIPSIBLINGS | WS_CLIPCHILDREN | dwStyle,
+                                  0, 0,
+                                  winrect.right - winrect.left,
+                                  winrect.bottom - winrect.top,
+                                  NULL, NULL, hInst, NULL))) {
+         printf("failed to create window\n");
+         exit(0);
+      }
+
+      if (!(hDC = GetDC(hWnd))) {
+         printf("GetDC() failed.\n");
+         exit(0);
+      }
+      if (!SetPixelFormat(hDC, pixelFormat, &pfd)) {
+         printf("SetPixelFormat failed %d\n", (int) GetLastError());
+         exit(0);
+      }
+      if (!(hRC = wglCreateContext(hDC))) {
+         printf("wglCreateContext() failed\n");
+         exit(0);
+      }
+      if (!wglMakeCurrent(hDC, hRC)) {
+         printf("wglMakeCurrent() failed\n");
+         exit(0);
+      }
    }
 
    ShowWindow(hWnd, SW_SHOW);
@@ -459,6 +541,9 @@ main(int argc, char *argv[])
       }
       else if (strcmp(argv[i], "-h") == 0) {
          usage();
+      }
+      else if (strcmp(argv[i], "-srgb") == 0) {
+         use_srgb = GL_TRUE;
       }
       else {
         fprintf(stderr, "%s: Unsupported option '%s'.\n", ProgramName, argv[i]);
