@@ -31,8 +31,9 @@
  *  -l                     print interesting OpenGL limits (added 5 Sep 2002)
  */
 
-#include <windows.h>
 
+#include <windows.h>
+#include <stdbool.h>
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <assert.h>
@@ -45,6 +46,7 @@
 static GLboolean have_WGL_ARB_create_context;
 static GLboolean have_WGL_ARB_pixel_format;
 static GLboolean have_WGL_ARB_multisample;
+static GLboolean have_WGL_ARB_framebuffer_sRGB; /* or EXT version */
 
 static PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB_func;
 static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB_func;
@@ -57,6 +59,8 @@ struct format_info {
    PIXELFORMATDESCRIPTOR pfd;
    int sampleBuffers, numSamples;
    int transparency;
+   bool floatComponents;
+   bool srgb;
 };
 
 
@@ -171,6 +175,10 @@ print_screen_info(HDC _hdc, const struct options *opts, GLboolean coreProfile)
          }
          if (extension_supported("WGL_ARB_create_context", wglExtensions)) {
             have_WGL_ARB_create_context = GL_TRUE;
+         }
+         if (extension_supported("WGL_ARB_framebuffer_sRGB", wglExtensions) ||
+             extension_supported("WGL_EXT_framebuffer_sRGB", wglExtensions)) {
+            have_WGL_ARB_framebuffer_sRGB = GL_TRUE;
          }
       }
 #endif
@@ -327,9 +335,11 @@ print_visual_attribs_verbose(int iPixelFormat, const struct format_info *info)
 	  visual_render_type_name(info->pfd.iPixelType),
           info->pfd.dwFlags & PFD_DOUBLEBUFFER ? 1 : 0, 
           info->pfd.dwFlags & PFD_STEREO ? 1 : 0);
-   printf("    rgba: cRedBits=%d cGreenBits=%d cBlueBits=%d cAlphaBits=%d\n",
+   printf("    rgba: cRedBits=%d cGreenBits=%d cBlueBits=%d cAlphaBits=%d float=%c sRGB=%c\n",
           info->pfd.cRedBits, info->pfd.cGreenBits,
-          info->pfd.cBlueBits, info->pfd.cAlphaBits);
+          info->pfd.cBlueBits, info->pfd.cAlphaBits,
+          info->floatComponents ? 'Y' : 'N',
+          info->srgb ? 'Y' : 'N');
    printf("    cAuxBuffers=%d cDepthBits=%d cStencilBits=%d\n",
           info->pfd.cAuxBuffers, info->pfd.cDepthBits, info->pfd.cStencilBits);
    printf("    accum: cRedBits=%d cGreenBits=%d cBlueBits=%d cAlphaBits=%d\n",
@@ -343,25 +353,22 @@ print_visual_attribs_verbose(int iPixelFormat, const struct format_info *info)
       printf("    swapMethod = Copy\n");
    else
       printf("    swapMethod = Undefined\n");
-
 }
 
 
 static void
 print_visual_attribs_short_header(void)
 {
-   printf("   visual   x   bf lv rg d st colorbuffer ax dp st accumbuffer  ms  cav\n");
-   printf(" id gen win sp  sz l  ci b ro  r  g  b  a bf th cl  r  g  b  a ns b eat\n");
-   printf("------------------------------------------------------------------------\n");
+   printf("    visual   x   bf lv rg d st colorbuffer   sr ax dp st accumbuffer  ms \n");
+   printf("  id gen win sp  sz l  ci b ro  r  g  b  a F gb bf th cl  r  g  b  a ns b\n");
+   printf("-------------------------------------------------------------------------\n");
 }
 
 
 static void
 print_visual_attribs_short(int iPixelFormat, const struct format_info *info)
 {
-   char *caveat = "None";
-
-   printf("0x%02x %2d  %2d %2d %3d %2d %c%c %c  %c %2d %2d %2d %2d %2d %2d %2d",
+   printf("0x%03x %2d  %2d %2d %3d %2d %c%c %c  %c %2d %2d %2d %2d %c  %c %2d %2d %2d",
           iPixelFormat,
           info->pfd.dwFlags & PFD_GENERIC_FORMAT ? 1 : 0,
           info->pfd.dwFlags & PFD_DRAW_TO_WINDOW ? 1 : 0,
@@ -374,33 +381,33 @@ print_visual_attribs_short(int iPixelFormat, const struct format_info *info)
           info->pfd.dwFlags & PFD_STEREO ? 'y' : '.',
           info->pfd.cRedBits, info->pfd.cGreenBits,
           info->pfd.cBlueBits, info->pfd.cAlphaBits,
+          info->floatComponents ? 'f' : '.',
+          info->srgb ? 's' : '.',
           info->pfd.cAuxBuffers,
           info->pfd.cDepthBits,
           info->pfd.cStencilBits
           );
 
-   printf(" %2d %2d %2d %2d %2d %1d %s\n",
+   printf(" %2d %2d %2d %2d %2d %1d\n",
           info->pfd.cAccumRedBits, info->pfd.cAccumGreenBits,
           info->pfd.cAccumBlueBits, info->pfd.cAccumAlphaBits,
-          info->numSamples, info->sampleBuffers,
-          caveat
-          );
+          info->numSamples, info->sampleBuffers);
 }
 
 
 static void
 print_visual_attribs_long_header(void)
 {
- printf("Vis  Vis   Visual Trans  buff lev render DB ste  r   g   b   a  aux dep ste  accum buffers  MS   MS\n");
- printf(" ID Depth   Type  parent size el   type     reo sz  sz  sz  sz  buf th  ncl  r   g   b   a  num bufs\n");
- printf("----------------------------------------------------------------------------------------------------\n");
+ printf("Vis   Vis   Visual Trans  buff lev render DB ste  r   g   b   a      s  aux dep ste  accum buffers  MS   MS \n");
+ printf(" ID  Depth   Type  parent size el   type     reo sz  sz  sz  sz flt rgb buf th  ncl  r   g   b   a  num bufs\n");
+ printf("------------------------------------------------------------------------------------------------------------\n");
 }
 
 
 static void
 print_visual_attribs_long(int iPixelFormat, const struct format_info *info)
 {
-   printf("0x%2x %2d %11d %2d     %2d %2d  %4s %3d %3d %3d %3d %3d %3d",
+   printf("0x%3x %2d %11d %2d     %2d %2d  %4s %3d %3d %3d %3d %3d %3d",
           iPixelFormat,
           info->pfd.dwFlags & PFD_GENERIC_FORMAT ? 1 : 0,
           info->pfd.dwFlags & PFD_DRAW_TO_WINDOW ? 1 : 0,
@@ -414,7 +421,9 @@ print_visual_attribs_long(int iPixelFormat, const struct format_info *info)
           info->pfd.cBlueBits, info->pfd.cAlphaBits
           );
 
-   printf(" %3d %4d %2d %3d %3d %3d %3d  %2d  %2d\n",
+   printf("  %c   %c %3d %4d %2d %3d %3d %3d %3d  %2d  %2d\n",
+          info->floatComponents ? 'f' : '.',
+          info->srgb ? 's' : '.',
           info->pfd.cAuxBuffers,
           info->pfd.cDepthBits,
           info->pfd.cStencilBits,
@@ -473,11 +482,15 @@ get_format_info(HDC hdc, int pf, struct format_info *info)
       else if (swapMethod == WGL_SWAP_COPY_ARB)
          info->pfd.dwFlags |= PFD_SWAP_COPY;
 
-      info->pfd.iPixelType = get_pf_attrib(hdc, pf, WGL_PIXEL_TYPE_ARB);
-      if (info->pfd.iPixelType == WGL_TYPE_RGBA_ARB)
+      int pixel_type = get_pf_attrib(hdc, pf, WGL_PIXEL_TYPE_ARB);
+      if (pixel_type == WGL_TYPE_RGBA_ARB)
          info->pfd.iPixelType = PFD_TYPE_RGBA;
-      else if (info->pfd.iPixelType == WGL_TYPE_COLORINDEX_ARB)
+      else if (pixel_type == WGL_TYPE_COLORINDEX_ARB)
          info->pfd.iPixelType = PFD_TYPE_COLORINDEX;
+      else if (pixel_type == WGL_TYPE_RGBA_FLOAT_ARB) {
+         info->pfd.iPixelType = PFD_TYPE_RGBA;
+         info->floatComponents = true;
+      }
 
       info->pfd.cColorBits = get_pf_attrib(hdc, pf, WGL_COLOR_BITS_ARB);
       info->pfd.cRedBits = get_pf_attrib(hdc, pf, WGL_RED_BITS_ARB);
@@ -502,6 +515,10 @@ get_format_info(HDC hdc, int pf, struct format_info *info)
       info->numSamples = get_pf_attrib(hdc, pf, WGL_SAMPLES_ARB);
 
       info->transparency = get_pf_attrib(hdc, pf, WGL_TRANSPARENT_ARB);
+
+      if (have_WGL_ARB_framebuffer_sRGB) {
+         info->srgb = get_pf_attrib(hdc, pf, WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
+      }
    }
    else {
       if (!DescribePixelFormat(hdc, pf,
