@@ -739,7 +739,7 @@ usage(void)
 #endif
    printf("\t-B: brief output, print only the basics.\n");
    printf("\t-v: Print visuals info in verbose form.\n");
-   printf("\t-t: Print verbose table.\n");
+   printf("\t-t: Print verbose visual information table.\n");
    printf("\t-h: This information.\n");
    printf("\t-b: Find the 'best' visual and print its number.\n");
    printf("\t-l: Print interesting OpenGL limits.\n");
