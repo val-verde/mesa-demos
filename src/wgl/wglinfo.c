@@ -44,6 +44,7 @@
 
 
 static GLboolean have_WGL_ARB_create_context;
+static GLboolean have_WGL_ARB_pbuffer;
 static GLboolean have_WGL_ARB_pixel_format;
 static GLboolean have_WGL_ARB_multisample;
 static GLboolean have_WGL_ARB_framebuffer_sRGB; /* or EXT version */
@@ -61,6 +62,9 @@ struct format_info {
    int transparency;
    bool floatComponents;
    bool srgb;
+   bool draw_to_bitmap;
+   bool draw_to_pbuffer;
+   bool gdi_drawing;
 };
 
 
@@ -167,6 +171,9 @@ print_screen_info(HDC _hdc, const struct options *opts, GLboolean coreProfile)
 #if defined(WGL_ARB_extensions_string)
       if (wglGetExtensionsStringARB_func) {
          wglExtensions = wglGetExtensionsStringARB_func(hdc);
+         if (extension_supported("WGL_ARB_pbuffer", wglExtensions)) {
+            have_WGL_ARB_pbuffer = GL_TRUE;
+         }
          if (extension_supported("WGL_ARB_pixel_format", wglExtensions)) {
             have_WGL_ARB_pixel_format = GL_TRUE;
          }
@@ -326,10 +333,13 @@ visual_render_type_name(BYTE iPixelType)
 static void
 print_visual_attribs_verbose(int iPixelFormat, const struct format_info *info)
 {
-   printf("Visual ID: %x  generic=%d  native=%d\n",
+   printf("Visual ID: %x generic=%d drawToWindow=%d drawToBitmap=%d drawToPBuffer=%d GDI=%d\n",
           iPixelFormat, 
           info->pfd.dwFlags & PFD_GENERIC_FORMAT ? 1 : 0,
-          info->pfd.dwFlags & PFD_DRAW_TO_WINDOW ? 1 : 0);
+          info->pfd.dwFlags & PFD_DRAW_TO_WINDOW ? 1 : 0,
+          info->draw_to_bitmap,
+          info->draw_to_pbuffer,
+          info->gdi_drawing);
    printf("    bufferSize=%d level=%d renderType=%s doubleBuffer=%d stereo=%d\n",
           0 /* info->pfd.bufferSize */, 0 /* info->pfd.level */,
 	  visual_render_type_name(info->pfd.iPixelType),
@@ -475,6 +485,13 @@ get_format_info(HDC hdc, int pf, struct format_info *info)
          info->pfd.dwFlags |= PFD_DOUBLEBUFFER;
       if (get_pf_attrib(hdc, pf, WGL_STEREO_ARB))
          info->pfd.dwFlags |= PFD_STEREO;
+
+      if (get_pf_attrib(hdc, pf, WGL_DRAW_TO_BITMAP_ARB))
+         info->draw_to_bitmap = true;
+      if (have_WGL_ARB_pbuffer && get_pf_attrib(hdc, pf, WGL_DRAW_TO_PBUFFER_ARB))
+         info->draw_to_pbuffer = true;
+      if (get_pf_attrib(hdc, pf, WGL_SUPPORT_GDI_ARB))
+         info->gdi_drawing = true;
 
       swapMethod = get_pf_attrib(hdc, pf, WGL_SWAP_METHOD_ARB);
       if (swapMethod == WGL_SWAP_EXCHANGE_ARB)
