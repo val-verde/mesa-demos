@@ -421,11 +421,12 @@ make_window(const char *name, int x, int y, int width, int height)
    }
 
    if (use_srgb) {
-      /* For sRGB we need to use the wglChoosePixelFormatARB() function,
-       * and then create a new context, window, etc.
+      /* We can't query/use extension functions until after we've
+       * created and bound a rendering context (done above).
        *
-       * Note: we can't query/use extension functions until after we've
-       * creatend and bound a rendering context.
+       * We can only set the pixel format of the window once, so we need to
+       * create a new device context in order to use the pixel format returned
+       * from wglChoosePixelFormatARB, and then create a new window.
        */
       PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB_func =
          (PFNWGLCHOOSEPIXELFORMATARBPROC)
@@ -434,8 +435,8 @@ make_window(const char *name, int x, int y, int width, int height)
 
       static const int int_attribs[] = {
          WGL_SUPPORT_OPENGL_ARB, TRUE,
-         //WGL_COLOR_BITS_ARB, 24,
-         //WGL_ALPHA_BITS_ARB, 8,
+         WGL_DRAW_TO_WINDOW_ARB, TRUE,
+         WGL_COLOR_BITS_ARB, 24,  // at least 24-bits of RGB
          WGL_DEPTH_BITS_ARB, 24,
          WGL_DOUBLE_BUFFER_ARB, TRUE,
          WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, TRUE,
@@ -452,6 +453,7 @@ make_window(const char *name, int x, int y, int width, int height)
       }
       assert(numFormats > 0);
       printf("Chose sRGB pixel format %d (0x%x)\n", pixelFormat, pixelFormat);
+      fflush(stdout);
 
       PIXELFORMATDESCRIPTOR newPfd;
       DescribePixelFormat(hDC, pixelFormat, sizeof(pfd), &newPfd);
