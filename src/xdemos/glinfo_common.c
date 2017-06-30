@@ -30,6 +30,18 @@
 #define snprintf _snprintf
 #endif
 
+#ifndef GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT
+#define GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT 0x00000001
+#endif
+#ifndef GL_CONTEXT_FLAG_DEBUG_BIT
+#define GL_CONTEXT_FLAG_DEBUG_BIT 0x00000002
+#endif
+#ifndef GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB
+#define GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB 0x00000004
+#endif
+#ifndef GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR
+#define GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR 0x00000008
+#endif
 
 /**
  * Return the GL enum name for a numeric value.
@@ -715,12 +727,10 @@ const char *
 context_flags_string(int mask)
 {
    const static struct bit_info bits[] = {
-#ifdef GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT
       { GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT, "forward-compatible" },
-#endif
-#ifdef GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB
       { GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB, "robust-access" },
-#endif
+      { GL_CONTEXT_FLAG_DEBUG_BIT, "debug" },
+      { GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR, "no-error" },
    };
 
    return bitmask_to_string(bits, ELEMENTS(bits), mask);
