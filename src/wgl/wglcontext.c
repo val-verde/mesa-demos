@@ -24,6 +24,19 @@
 #include <stdlib.h>
 #include <GL/glew.h>
 #include <GL/wglew.h>
+#include <GL/glext.h>
+
+#ifndef GL_CONTEXT_FLAG_DEBUG_BIT
+#define GL_CONTEXT_FLAG_DEBUG_BIT         0x00000002
+#endif
+#ifndef GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT
+#define GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT 0x00000004
+#endif
+
+#ifndef GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR
+#define GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR  0x00000008
+#endif
+
 
 static LRESULT CALLBACK
 WndProc(HWND hWnd,
@@ -61,13 +74,38 @@ static char *
 profile_mask_to_string(GLint profileMask)
 {
    switch (profileMask) {
-   case WGL_CONTEXT_CORE_PROFILE_BIT_ARB:
-      return "WGL_CONTEXT_CORE_PROFILE_BIT_ARB";
-   case WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB:
-      return "WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB";
+   case GL_CONTEXT_CORE_PROFILE_BIT:
+      return "GL_CONTEXT_CORE_PROFILE_BIT";
+   case GL_CONTEXT_COMPATIBILITY_PROFILE_BIT:
+      return "GL_CONTEXT_COMPATIBILITY_PROFILE_BIT";
    default:
       return "0";
    }
+}
+
+static char *
+context_flags_to_string(GLint flags)
+{
+   static char buf[1000] = {0};
+   if (flags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)
+      strcat(buf, "GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT | ");
+   if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+      strcat(buf, "GL_CONTEXT_FLAG_DEBUG_BIT | ");
+   if (flags & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT)
+      strcat(buf, "GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT | ");
+   if (flags & GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR)
+      strcat(buf, "GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR | ");
+
+   int n = strlen(buf);
+   if (n >= 3) {
+      /* rm the trailing " | " */
+      buf[n-3] = 0;
+   }
+   else {
+      strcat(buf, "(none)");
+   }
+
+   return buf;
 }
 
 static void
@@ -75,13 +113,19 @@ print_context_infos(void)
 {
    GLint majorVersion;
    GLint minorVersion;
-   GLint profileMask;
-   const char *version;
+   GLint profileMask, flags;
+   const char *version, *vendor, *renderer;
 
    fprintf(stdout, "Context Informations\n");
 
    version = (const char *)glGetString(GL_VERSION);
    fprintf(stdout, "GL_VERSION: %s\n", version);
+
+   vendor = (const char *)glGetString(GL_VENDOR);
+   fprintf(stdout, "GL_VENDOR: %s\n", vendor);
+
+   renderer = (const char *)glGetString(GL_RENDERER);
+   fprintf(stdout, "GL_RENDERER: %s\n", renderer);
 
    // Request informations with the new 3.x features.
    if (sscanf(version, "%d.%d", &majorVersion, &minorVersion) != 2)
@@ -90,10 +134,28 @@ print_context_infos(void)
    if (majorVersion >= 3) {
       glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
       glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
-      glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
       fprintf(stdout, "GL_MAJOR_VERSION: %d\n", majorVersion);
       fprintf(stdout, "GL_MINOR_VERSION: %d\n", minorVersion);
-      fprintf(stdout, "GL_CONTEXT_PROFILE_MASK: %s\n", profile_mask_to_string(profileMask));
+   }
+   if (majorVersion * 10 + minorVersion >= 32) {
+      glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+      glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+      fprintf(stdout, "GL_CONTEXT_PROFILE_MASK: %s\n",
+              profile_mask_to_string(profileMask));
+      fprintf(stdout, "GL_CONTEXT_FLAGS: %s\n",
+              context_flags_to_string(flags));
+   }
+
+   /* Test if deprecated features work or generate an error */
+   while (glGetError() != GL_NO_ERROR)
+      ;
+
+   (void) glGenLists(1);
+   if (glGetError()) {
+      fprintf(stdout, "glGenLists generated an error.\n");
+   }
+   else {
+      fprintf(stdout, "glGenLists generated no error.\n");
    }
 }
 
@@ -107,13 +169,6 @@ create_context(int majorVersion, int minorVersion, int profileMask, int contextF
    int pixelFormat;
    HGLRC tmp, ctx;
    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-   int attribsList[] = {
-      WGL_CONTEXT_MAJOR_VERSION_ARB, 1,
-      WGL_CONTEXT_MINOR_VERSION_ARB, 0,
-      WGL_CONTEXT_FLAGS_ARB, 0,
-      WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-      0
-   };
 
    memset(&wc, 0, sizeof(wc));
    wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
@@ -190,10 +245,21 @@ create_context(int majorVersion, int minorVersion, int profileMask, int contextF
       return;
    }
 
-   attribsList[1] = majorVersion;
-   attribsList[3] = minorVersion;
-   attribsList[5] = contextFlags;
-   attribsList[7] = profileMask;
+   int attribsList[20];
+   int i = 0;
+   attribsList[i++] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+   attribsList[i++] = majorVersion;
+   attribsList[i++] = WGL_CONTEXT_MINOR_VERSION_ARB;
+   attribsList[i++] = minorVersion;
+   if (contextFlags) {
+      attribsList[i++] = WGL_CONTEXT_FLAGS_ARB;
+      attribsList[i++] = contextFlags;
+   }
+   if (profileMask) {
+      attribsList[i++] = WGL_CONTEXT_PROFILE_MASK_ARB;
+      attribsList[i++] = profileMask;
+   }
+   attribsList[i++] = 0;
 
    ctx = wglCreateContextAttribsARB(hdc, 0, attribsList);
    if (!ctx) {
@@ -224,7 +290,6 @@ usage(void)
    fprintf(stdout, "   -compat  : request a context implementing the compatibility profile\n");
    fprintf(stdout, "   -debug   : request a debug context\n");
    fprintf(stdout, "   -forward : request a forward-compatible context\n");
-   
 }
 
 int
@@ -233,7 +298,7 @@ main(int argc, char *argv[])
    int i;
    int majorVersion = 1, minorVersion = 0;
    int contextFlags = 0x0;
-   int profileMask = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+   int profileMask = 0x0;
 
    for (i = 1; i < argc; i++) {
       if (strcmp(argv[i], "-h") == 0) {
