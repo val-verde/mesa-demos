@@ -64,6 +64,7 @@ PointCalibrate(int xpos, int ypos)
             if (y > ymax)
                ymax = y;
          }
+         glutSwapBuffers();
       }
    }
 
@@ -91,12 +92,10 @@ PointCalibrate(int xpos, int ypos)
       printf("  => Points should be Y biased by about %f\n", 1.0 - ymax);
    }
 
+   fflush(stdout);
 }
 
 
-/**
- * XXX Implement VLineCalibrate() someday
- */
 static void
 HLineCalibrate(int xpos, int ypos, int len)
 {
@@ -128,6 +127,7 @@ HLineCalibrate(int xpos, int ypos, int len)
          if (y > ymax)
             ymax = y;
       }
+      glutSwapBuffers();
    }
 
    printf("H-line at Y=%2d drawn for y in [%6.3f, %6.3f]\n",
@@ -175,6 +175,7 @@ HLineCalibrate(int xpos, int ypos, int len)
          if (x > xmax_right)
             xmax_right = x;
       }
+      glutSwapBuffers();
    }
 
    printf("H-line [%d..%d) hit left end for x in [%6.3f, %6.3f] "
@@ -208,6 +209,125 @@ HLineCalibrate(int xpos, int ypos, int len)
       printf("  => Coords should be X biased by about %f\n", -xmax_right + 1.0);
    }
 
+   fflush(stdout);
+}
+
+
+static void
+VLineCalibrate(int xpos, int ypos, int len)
+{
+   GLfloat rgba[2][4];
+   float x, y;
+   float xmin, xmax;
+   float ymin_bottom, ymax_bottom, ymin_top, ymax_top;
+
+   ymin_bottom = ymin_top = 1000.0;
+   ymax_bottom = ymax_top = -1000.0;
+   xmin = 1000;
+   xmax = -1000.0;
+
+   /*
+    * First, check horizontal positioning of the vertical line
+    */
+   for (x = -1.0; x <= 1.0; x += Step) {
+      glClear(GL_COLOR_BUFFER_BIT);
+      glBegin(GL_LINES);
+      glVertex2f(xpos + x,   ypos);
+      glVertex2f(xpos + x, ypos + len);
+      glEnd();
+
+      glReadPixels(xpos + len / 2, ypos, 1, 1, GL_RGBA, GL_FLOAT, rgba);
+      glReadPixels(xpos, ypos + len / 2, 1, 1, GL_RGBA, GL_FLOAT, rgba);
+      if (rgba[0][0] == 1.0) {
+         /* hit */
+         if (x < xmin)
+            xmin = x;
+         if (x > xmax)
+            xmax = x;
+      }
+      glutSwapBuffers();
+   }
+
+   printf("V-line at X=%d drawn for x in [%6.3f, %6.3f]\n",
+          xpos,
+          xpos + xmin, xpos + xmax);
+
+   if (xmax - xmin != 1.0 - Step) {
+      printf("  => Inconsistant X-axis rasterization!\n");
+   }
+
+   if (xmin > 0.5 ) {
+      printf("  => Lines should be X biased by about %f\n", xmin - 0.5);
+   }
+
+   if (xmax < 0.5 ) {
+      printf("  => Lines should be X biased by about %f\n", 0.5 - xmax);
+   }
+
+   /*
+    * Second, check endpoints  (for X at 1/2 pixel)
+    */
+   for (y = -1.0; y <= 1.0; y += Step) {
+      glClear(GL_COLOR_BUFFER_BIT);
+      glBegin(GL_LINES);
+      glVertex2f(xpos + 0.5f, ypos + y);
+      glVertex2f(xpos + 0.5f, ypos + y + len);
+      glEnd();
+
+      /* bottom end */
+      glReadPixels(xpos, ypos - 1, 1, 2, GL_RGBA, GL_FLOAT, rgba);
+      if (rgba[0][0] == 0.0 && rgba[1][0] == 1.0) {
+         /* hit */
+         if (y < ymin_bottom)
+            ymin_bottom = y;
+         if (y > ymax_bottom)
+            ymax_bottom = y;
+      }
+
+      /* top end */
+      glReadPixels(xpos, ypos + len - 1, 1, 2, GL_RGBA, GL_FLOAT, rgba);
+      if (rgba[0][0] == 1.0 && rgba[1][0] == 0.0) {
+         /* hit */
+         if (y < ymin_top)
+            ymin_top = y;
+         if (y > ymax_top)
+            ymax_top = y;
+      }
+      glutSwapBuffers();
+   }
+
+   printf("V-line [%d..%d) hit bottom end for y in [%6.3f, %6.3f] "
+          "hit top end for y in [%6.3f, %6.3f]\n",
+          ypos, ypos + len,
+          ypos + ymin_bottom, ypos + ymax_bottom,
+          ypos + len + ymin_top, ypos + len + ymax_top);
+
+   if (ymax_bottom - ymin_bottom > 1.0 - Step) {
+      printf("  => Inconsistant bottom-end rasterization!\n");
+   }
+   if (ymax_top - ymin_top > 1.0 - Step) {
+      printf("  => Inconsistant top-end rasterization!\n");
+   }
+
+   if (ymin_bottom != ymin_top ||
+       ymax_bottom != ymax_top) {
+      printf("  => Inconsistant length!\n");
+   }
+
+   if (ymin_bottom < 0.0) {
+      printf("  => Coords should be Y biased by about %f\n", ymin_bottom );
+   }
+   if (ymin_top < 0.0) {
+      printf("  => Coords should be Y biased by about %f\n", ymin_top );
+   }
+   if (ymax_bottom > 1.0) {
+      printf("  => Coords should be Y biased by about %f\n", -ymax_top + 1.0);
+   }
+   if (ymax_top > 1.0) {
+      printf("  => Coords should be Y biased by about %f\n", -ymax_top + 1.0);
+   }
+
+   fflush(stdout);
 }
 
 
@@ -253,6 +373,8 @@ QuadCalibrate(int xpos, int ypos, int width, int height)
             if (y > ymax)
                ymax = y;
          }
+
+         glutSwapBuffers();
       }
    }
 
@@ -282,6 +404,8 @@ QuadCalibrate(int xpos, int ypos, int width, int height)
    if (ymax > 0.5) {
       printf("  => Coords should be Y biased by about %f\n", -ymax + 0.5);
    }
+
+   fflush(stdout);
 }
 
 
@@ -312,7 +436,7 @@ DebugTest(void)
 static void
 Draw(void)
 {
-   glClear(GL_COLOR_BUFFER_BIT);
+   //   glClear(GL_COLOR_BUFFER_BIT);
 
    glPushMatrix();
    glTranslatef(Xtrans, Ytrans, 0);
@@ -329,6 +453,12 @@ Draw(void)
    HLineCalibrate(54+12, 33, 12);
    printf("\n");
 
+   VLineCalibrate(5, 10, 10);
+   VLineCalibrate(25, 22, 12);
+   VLineCalibrate(54, 33, 12);
+   VLineCalibrate(54+12, 33, 12);
+   printf("\n");
+
    QuadCalibrate(2, 2, 10, 10);
    QuadCalibrate(50, 50, 10, 10);
    QuadCalibrate(28, 17, 12, 12);
@@ -338,7 +468,7 @@ Draw(void)
 
    glPopMatrix();
 
-   glutSwapBuffers();
+   //   glutSwapBuffers();
 }
 
 
@@ -376,6 +506,7 @@ Init(void)
 {
    printf("Measurement/callibration for basic prim rasterization...\n");
    printf("GL_RENDERER: %s\n", (char*) glGetString(GL_RENDERER));
+   printf("GL_VERSION: %s\n", (char*) glGetString(GL_VERSION));
 }
 
 
