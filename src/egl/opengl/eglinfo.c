@@ -55,6 +55,25 @@ PrintConfigs(EGLDisplay d)
    printf("Configurations:\n");
    printf("     bf lv colorbuffer dp st  ms    vis   cav bi  renderable  supported\n");
    printf("  id sz  l  r  g  b  a th cl ns b    id   eat nd gl es es2 vg surfaces \n");
+   /*        ^  ^   ^  ^  ^  ^  ^ ^  ^  ^  ^    ^    ^   ^  ^  ^  ^   ^  ^
+    *        |  |   |  |  |  |  | |  |  |  |    |    |   |  |  |  |   |  |
+    *        |  |   |  |  |  |  | |  |  |  |    |    |   |  |  |  |   |  EGL_SURFACE_TYPE
+    *        |  |   |  |  |  |  | |  |  |  |    |    |   |  EGL_RENDERABLE_TYPE
+    *        |  |   |  |  |  |  | |  |  |  |    |    |   EGL_BIND_TO_TEXTURE_RGB/EGL_BIND_TO_TEXTURE_RGBA
+    *        |  |   |  |  |  |  | |  |  |  |    |    EGL_CONFIG_CAVEAT
+    *        |  |   |  |  |  |  | |  |  |  |    EGL_NATIVE_VISUAL_ID/EGL_NATIVE_VISUAL_TYPE
+    *        |  |   |  |  |  |  | |  |  |  EGL_SAMPLE_BUFFERS
+    *        |  |   |  |  |  |  | |  |  EGL_SAMPLES
+    *        |  |   |  |  |  |  | |  EGL_STENCIL_SIZE
+    *        |  |   |  |  |  |  | EGL_DEPTH_SIZE
+    *        |  |   |  |  |  |  EGL_ALPHA_SIZE
+    *        |  |   |  |  |  EGL_BLUE_SIZE
+    *        |  |   |  |  EGL_GREEN_SIZE
+    *        |  |   |  EGL_RED_SIZE
+    *        |  |   EGL_LEVEL
+    *        |  EGL_BUFFER_SIZE
+    *        EGL_CONFIG_ID
+    */
    printf("---------------------------------------------------------------------\n");
    for (i = 0; i < numConfigs; i++) {
       EGLint id, size, level;
