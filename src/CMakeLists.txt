@@ -25,6 +25,10 @@ if (X11_FOUND)
 	add_subdirectory (xdemos)
 endif (X11_FOUND)
 
+if (OSMESA_FOUND)
+	add_subdirectory (osdemos)
+endif (OSMESA_FOUND)
+
 if (WIN32)
 	add_subdirectory (wgl)
 endif (WIN32)
