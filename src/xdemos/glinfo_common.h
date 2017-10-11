@@ -86,6 +86,7 @@ struct options
 
 /** list of known OpenGL versions */
 static const struct { int major, minor; } gl_versions[] = {
+   {4, 6},
    {4, 5},
    {4, 4},
    {4, 3},
