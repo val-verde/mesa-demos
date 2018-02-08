@@ -56,8 +56,9 @@ endif
 endif
 
 if HAVE_EGL
+bin_PROGRAMS = \
+	eglinfo
 noinst_PROGRAMS = \
-	eglinfo \
 	peglgears \
 	$(EGL_DRM_DEMOS) \
 	$(EGL_X11_DEMOS) \
