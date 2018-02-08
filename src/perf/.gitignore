@@ -3,6 +3,7 @@ drawoverhead
 fbobind
 fill
 genmipmap
+glsl-compile-time
 glslstateschange
 readpixels
 swapbuffers
