@@ -234,6 +234,10 @@ main(int argc, char *argv[])
            ret += doOneDisplay(getPlatformDisplay(EGL_PLATFORM_X11_EXT,
                                                   EGL_DEFAULT_DISPLAY,
                                                   NULL), "X11 platform");
+       if (strstr(clientext, "EGL_EXT_platform_device"))
+           ret += doOneDisplay(getPlatformDisplay(EGL_PLATFORM_DEVICE_EXT,
+                                                  EGL_DEFAULT_DISPLAY,
+                                                  NULL), "Device platform");
    }
    else {
       ret = doOneDisplay(eglGetDisplay(EGL_DEFAULT_DISPLAY), "Default display");
