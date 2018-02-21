@@ -785,12 +785,13 @@ print_limits(const char *extensions, const char *oglstring, int version,
    if (extension_supported("GL_ARB_texture_compression", extensions)) {
       GLint i, n;
       GLint *formats;
+      printf("  GL_ARB_texture_compression:\n");
       glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &n);
       printf("    GL_NUM_COMPRESSED_TEXTURE_FORMATS = %d\n", n);
       formats = (GLint *) malloc(n * sizeof(GLint));
       glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formats);
       for (i = 0; i < n; i++) {
-         printf("        %s\n", enum_name(formats[i]));
+         printf("      %s\n", enum_name(formats[i]));
       }
       free(formats);
    }
