@@ -795,6 +795,20 @@ print_limits(const char *extensions, const char *oglstring, int version,
       }
       free(formats);
    }
+
+#if defined(GL_VERSION_4_3)
+   if (version >= 43) {
+      GLint i, n = 0;
+      printf("  4.3:\n");
+      glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS, &n);
+      printf("    GL_NUM_SHADING_LANGUAGE_VERSIONS = %d\n", n);
+      for (i = 0; i < n; i++) {
+         printf("      %s\n", (const char *)
+                extfuncs->GetStringi(GL_SHADING_LANGUAGE_VERSION, i));
+      }
+   }
+#endif
+
 #if defined(GL_ARB_vertex_program)
    if (extension_supported("GL_ARB_vertex_program", extensions)) {
       print_program_limits(GL_VERTEX_PROGRAM_ARB, extfuncs);
