@@ -51,6 +51,10 @@
 #include <EGL/eglext.h>
 #include "eglut.h"
 
+#ifdef __APPLE__
+#define sincos __sincos
+#endif
+
 #define STRIPS_PER_TOOTH 7
 #define VERTICES_PER_TOOTH 34
 #define GEAR_VERTEX_STRIDE 6
