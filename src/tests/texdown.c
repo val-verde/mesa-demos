@@ -34,7 +34,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#if __has_include(<malloc.h>)
 #include <malloc.h>
+#endif
 #include <math.h>
 #include <GL/glew.h>
 #include "glut_wrap.h"
